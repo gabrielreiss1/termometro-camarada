@@ -10,7 +10,8 @@ import {
 } from './fonte.ts';
 import { Grafico } from './ui/Grafico.tsx';
 import {
-  Abas, Apuracao, Aviso, ComoFunciona, Comparecimento, Espera, Estados, Placar, Rodape, Topo, Transferencia, Veredito,
+  Abas, Apuracao, Aviso, AvisoInsta, CartaoInsta, ComoFunciona, Comparecimento, Espera, Estados, Placar, Rodape, Topo,
+  Transferencia, Veredito,
   type Aba, type Status,
 } from './ui/blocos.tsx';
 
@@ -19,6 +20,18 @@ const CENARIO = CENARIOS.find((c) => c.nome === params.get('replay'));
 const MODO: 'ao-vivo' | 'replay' | 'teste-1t' = CENARIO ? 'replay' : params.get('eleicao') === '1t' ? 'teste-1t' : 'ao-vivo';
 const INICIO = new Date(CONFIG.inicioApuracao).getTime();
 const INTERVALO_MS = 60_000;
+const CHAVE_INSTA = 'termometro-insta-visto';
+// Na simulação o aviso aparece logo e sempre, para dar para ver como fica
+const ESPERA_AVISO_MS = MODO === 'replay' ? 8_000 : 60_000;
+
+function avisoJaVisto() {
+  if (MODO === 'replay') return false;
+  try {
+    return localStorage.getItem(CHAVE_INSTA) === '1';
+  } catch {
+    return false;
+  }
+}
 
 export function App() {
   const [prep, setPrep] = useState<BasePreparada | null>(null);
@@ -30,6 +43,22 @@ export function App() {
   const [agora, setAgora] = useState(Date.now());
   const [minutoReplay, setMinutoReplay] = useState(0);
   const [aba, setAba] = useState<Aba>('agora');
+  const [mostrarInsta, setMostrarInsta] = useState(false);
+
+  // Aviso do Instagram: sobe uma vez por pessoa, depois de um tempo usando o site
+  useEffect(() => {
+    if (!CONFIG.instagram || avisoJaVisto()) return;
+    const t = setTimeout(() => setMostrarInsta(true), ESPERA_AVISO_MS);
+    return () => clearTimeout(t);
+  }, []);
+  const fecharInsta = () => {
+    setMostrarInsta(false);
+    try {
+      localStorage.setItem(CHAVE_INSTA, '1');
+    } catch {
+      // sem armazenamento: pode aparecer de novo numa próxima visita
+    }
+  };
   const forcarEspera = params.get('espera') === '1';
   const esperando = MODO === 'ao-vivo' && (forcarEspera || (agora < INICIO && params.get('agora') !== '1'));
 
@@ -159,6 +188,7 @@ export function App() {
         {esperando && prep && (
           <>
             <Espera agora={agora} votos1t={totais1t} />
+            <CartaoInsta />
             <ComoFunciona />
           </>
         )}
@@ -174,6 +204,7 @@ export function App() {
             <Apuracao pctSecoes={resultado.pctSecoes} atualizado={atualizado} />
             <Placar r={resultado} />
             <Veredito r={resultado} />
+            <CartaoInsta />
             <section className="card">
               <h2 className="card-title">Como a apuração está andando</h2>
               <p className="card-sub">Fatia do Lula entre os dois, conforme as seções são apuradas.</p>
@@ -185,6 +216,7 @@ export function App() {
         {!esperando && aba === 'estados' && resultado && <Estados r={resultado} terceiro={terceiro} />}
       </main>
       <Rodape />
+      {mostrarInsta && <AvisoInsta fechar={fecharInsta} />}
     </div>
   );
 }
