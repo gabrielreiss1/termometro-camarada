@@ -20,12 +20,7 @@ npm run build               # gera o site em dist/
 
 ## Publicar
 
-```
-npx netlify login           # uma vez, autoriza no navegador
-npx netlify deploy --build --prod
-```
-
-Contas novas do Netlify gastam créditos a cada publicação em produção. Por isso, teste localmente (`npm run build` e `npx vite preview`) antes de publicar.
+O Netlify está ligado a este repositório: **todo push na `main` publica o site sozinho**, e cada pull request ganha uma prévia. Cada publicação em produção gasta 15 créditos do plano gratuito, então teste antes (`npm run build` e `npx vite preview`).
 
 ## Checklist do domingo (25/10)
 
