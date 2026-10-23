@@ -184,33 +184,35 @@ function IconesInsta() {
   );
 }
 
-export function CartaoInsta() {
+export function CartaoInsta({ seguir }: { seguir: () => void }) {
   if (!CONFIG.instagram) return null;
   return (
-    <a className="card cartao-insta" href={linkInsta()} target="_blank" rel="noreferrer">
+    <a className="card cartao-insta" href={linkInsta()} target="_blank" rel="noreferrer" onClick={seguir}>
       <IconesInsta />
       <span className="insta-texto">
-        <strong>Tá gostando?</strong>
-        <span>Siga <b>@{CONFIG.instagram}</b> no Instagram</span>
+        <strong>Camarada, siga @{CONFIG.instagram}</strong>
+        <span>no Insta e apoie quem faz este site de graça <span className="simbolo verm">☭</span></span>
       </span>
-      <span className="insta-botao">Seguir</span>
+      <span className="insta-botao">Quero seguir</span>
     </a>
   );
 }
 
-export function AvisoInsta({ fechar }: { fechar: () => void }) {
+export function AvisoInsta({ fim, fechar }: { fim: boolean; fechar: (seguiu: boolean) => void }) {
   if (!CONFIG.instagram) return null;
   return (
     <div className="aviso-insta" role="dialog" aria-label="Siga o Termômetro Camarada no Instagram">
-      <button className="aviso-fechar" onClick={fechar} aria-label="Fechar">×</button>
+      <button className="aviso-fechar" onClick={() => fechar(false)} aria-label="Fechar">×</button>
       <div className="aviso-topo">
         <IconesInsta />
         <div>
-          <strong>Tá gostando?</strong>
-          <p>Siga <b>@{CONFIG.instagram}</b> no Instagram para acompanhar a apuração.</p>
+          {fim && <span className="aviso-selo">Apuração encerrada</span>}
+          <strong>Camarada, siga @{CONFIG.instagram}</strong>
+          <p>no Insta e apoie quem faz este site de graça <span className="simbolo verm">☭</span></p>
         </div>
       </div>
-      <a className="btn btn-insta" href={linkInsta()} target="_blank" rel="noreferrer" onClick={fechar}>Seguir no Instagram</a>
+      <a className="btn btn-insta" href={linkInsta()} target="_blank" rel="noreferrer" onClick={() => fechar(true)}>Quero seguir</a>
+      <p className="aviso-gratis">Site grátis, sem anúncios, feito por camaradas.</p>
     </div>
   );
 }

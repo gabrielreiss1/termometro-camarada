@@ -20,16 +20,28 @@ const CENARIO = CENARIOS.find((c) => c.nome === params.get('replay'));
 const MODO: 'ao-vivo' | 'replay' | 'teste-1t' = CENARIO ? 'replay' : params.get('eleicao') === '1t' ? 'teste-1t' : 'ao-vivo';
 const INICIO = new Date(CONFIG.inicioApuracao).getTime();
 const INTERVALO_MS = 60_000;
-const CHAVE_INSTA = 'termometro-insta-visto';
-// Na simulação o aviso aparece logo e sempre, para dar para ver como fica
+/** 'fechou' ou 'seguiu' */
+const CHAVE_INSTA = 'termometro-insta';
+/** '1' depois que o aviso do fim da apuração foi mostrado */
+const CHAVE_INSTA_FIM = 'termometro-insta-fim';
+// Na simulação o aviso aparece logo e nada fica guardado, para dar para ver como fica
 const ESPERA_AVISO_MS = MODO === 'replay' ? 8_000 : 60_000;
 
-function avisoJaVisto() {
-  if (MODO === 'replay') return false;
+function lerInsta(chave: string) {
+  if (MODO === 'replay') return null;
   try {
-    return localStorage.getItem(CHAVE_INSTA) === '1';
+    return localStorage.getItem(chave);
   } catch {
-    return false;
+    return null;
+  }
+}
+
+function gravarInsta(chave: string, valor: string) {
+  if (MODO === 'replay') return;
+  try {
+    localStorage.setItem(chave, valor);
+  } catch {
+    // sem armazenamento: o aviso pode aparecer de novo numa próxima visita
   }
 }
 
@@ -43,21 +55,37 @@ export function App() {
   const [agora, setAgora] = useState(Date.now());
   const [minutoReplay, setMinutoReplay] = useState(0);
   const [aba, setAba] = useState<Aba>('agora');
-  const [mostrarInsta, setMostrarInsta] = useState(false);
+  const [avisoInsta, setAvisoInsta] = useState<null | 'inicio' | 'fim'>(null);
+  const insta = useRef({ estado: lerInsta(CHAVE_INSTA), fimVisto: lerInsta(CHAVE_INSTA_FIM) === '1' });
 
-  // Aviso do Instagram: sobe uma vez por pessoa, depois de um tempo usando o site
+  // Aviso do Instagram: sobe uma vez por pessoa depois de um tempo usando o site...
   useEffect(() => {
-    if (!CONFIG.instagram || avisoJaVisto()) return;
-    const t = setTimeout(() => setMostrarInsta(true), ESPERA_AVISO_MS);
+    if (!CONFIG.instagram || insta.current.estado) return;
+    const t = setTimeout(() => {
+      if (!insta.current.estado) setAvisoInsta((a) => a ?? 'inicio');
+    }, ESPERA_AVISO_MS);
     return () => clearTimeout(t);
   }, []);
-  const fecharInsta = () => {
-    setMostrarInsta(false);
-    try {
-      localStorage.setItem(CHAVE_INSTA, '1');
-    } catch {
-      // sem armazenamento: pode aparecer de novo numa próxima visita
+  // ...e uma última vez no fim da apuração, para quem fechou sem seguir
+  useEffect(() => {
+    if (!CONFIG.instagram || !resultado || resultado.pctSecoes < 0.99) return;
+    if (insta.current.estado === 'seguiu' || insta.current.fimVisto) return;
+    setAvisoInsta('fim');
+  }, [resultado]);
+  const fecharInsta = (seguiu: boolean) => {
+    const eraFim = avisoInsta === 'fim';
+    setAvisoInsta(null);
+    insta.current.estado = seguiu ? 'seguiu' : insta.current.estado ?? 'fechou';
+    gravarInsta(CHAVE_INSTA, insta.current.estado);
+    if (eraFim) {
+      insta.current.fimVisto = true;
+      gravarInsta(CHAVE_INSTA_FIM, '1');
     }
+  };
+  const seguirPeloCartao = () => {
+    insta.current.estado = 'seguiu';
+    gravarInsta(CHAVE_INSTA, 'seguiu');
+    setAvisoInsta(null);
   };
   const forcarEspera = params.get('espera') === '1';
   const esperando = MODO === 'ao-vivo' && (forcarEspera || (agora < INICIO && params.get('agora') !== '1'));
@@ -188,7 +216,7 @@ export function App() {
         {esperando && prep && (
           <>
             <Espera agora={agora} votos1t={totais1t} />
-            <CartaoInsta />
+            <CartaoInsta seguir={seguirPeloCartao} />
             <ComoFunciona />
           </>
         )}
@@ -204,7 +232,7 @@ export function App() {
             <Apuracao pctSecoes={resultado.pctSecoes} atualizado={atualizado} />
             <Placar r={resultado} />
             <Veredito r={resultado} />
-            <CartaoInsta />
+            <CartaoInsta seguir={seguirPeloCartao} />
             <section className="card">
               <h2 className="card-title">Como a apuração está andando</h2>
               <p className="card-sub">Fatia do Lula entre os dois, conforme as seções são apuradas.</p>
@@ -216,7 +244,7 @@ export function App() {
         {!esperando && aba === 'estados' && resultado && <Estados r={resultado} terceiro={terceiro} />}
       </main>
       <Rodape />
-      {mostrarInsta && <AvisoInsta fechar={fecharInsta} />}
+      {avisoInsta && <AvisoInsta fim={avisoInsta === 'fim'} fechar={fecharInsta} />}
     </div>
   );
 }
