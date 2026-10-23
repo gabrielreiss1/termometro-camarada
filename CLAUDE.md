@@ -5,6 +5,7 @@ Site que projeta o 2º turno presidencial de 25/10/2026 (Lula × Flávio Bolsona
 ## Como publicar
 
 - **Todo push para `main` publica em produção sozinho** (Netlify ligado a este repositório). Cada publicação gasta 15 créditos do plano gratuito do Netlify (300 por mês, compartilhados com o tráfego do site). Junte mudanças num push só e não faça push de teste.
+- Fluxo preferido: trabalhe num branch e abra um pull request. O Netlify cria uma prévia do PR (não gasta o crédito de publicação; a prévia pede login do Netlify). Passe o link da prévia ao dono e só faça merge na `main` quando ele aprovar. Se ele pedir para publicar direto, faça push na `main`.
 - Antes do push: `npm install`, `npm run build` (checa os tipos e monta o site) e, se mexer em `src/engine/`, `npm run replay:testar`. O erro médio dos cenários normais fica perto de 0,4 a 0,6 ponto; se piorar muito, algo quebrou.
 - Se uma publicação quebrar o site: no painel do Netlify, Deploys → escolher a versão anterior → Publish deploy.
 
