@@ -48,6 +48,30 @@ export function juntarSeries(...series: Ponto[][]): Ponto[] {
   return [...porPct.values()].sort((a, b) => a.pct - b.pct);
 }
 
+const CHAVE_CONTADO = 'termometro-contado';
+
+/** Conta este aparelho uma vez só no contador de visitas. */
+export function contarVisita() {
+  try {
+    if (localStorage.getItem(CHAVE_CONTADO) === '1') return;
+    localStorage.setItem(CHAVE_CONTADO, '1');
+  } catch {
+    return; // sem armazenamento, não dá para garantir uma contagem só por aparelho
+  }
+  fetch('/api/visitas', { method: 'POST' }).catch(() => {});
+}
+
+export async function lerVisitas(): Promise<number | null> {
+  try {
+    const resp = await fetch('/api/visitas', { cache: 'no-cache' });
+    if (!resp.ok) return null;
+    const dados = await resp.json();
+    return typeof dados?.total === 'number' ? dados.total : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function lerSerieGravador(): Promise<Ponto[]> {
   try {
     const resp = await fetch('/api/serie', { cache: 'no-cache' });

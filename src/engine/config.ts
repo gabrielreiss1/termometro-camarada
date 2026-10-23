@@ -27,6 +27,8 @@ export const CONFIG = {
 
   /** Perfil divulgado no site (cartão, aviso de baixo e "Copiar resumo"); null desliga tudo. */
   instagram: '2turnocamarada' as string | null,
+  /** O Instagram só aparece depois que tantos aparelhos diferentes abriram o site (0 = sempre). */
+  instagramMinVisitas: 500,
 
   simulacoes: 400,
   inicioApuracao: '2026-10-25T17:00:00-03:00',

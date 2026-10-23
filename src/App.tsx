@@ -6,7 +6,7 @@ import { CANDIDATOS_OUTROS, lerBase, type Candidato } from './engine/tipos.ts';
 import { ELEICAO_1T, ELEICAO_2T } from './engine/tse.ts';
 import { ColetorTSE } from './engine/coletor.ts';
 import {
-  buscarJson, gravarSerieLocal, juntarSeries, lerSerieGravador, lerSerieLocal, pontoDe, type Ponto,
+  buscarJson, contarVisita, gravarSerieLocal, juntarSeries, lerSerieGravador, lerSerieLocal, lerVisitas, pontoDe, type Ponto,
 } from './fonte.ts';
 import { Grafico } from './ui/Grafico.tsx';
 import {
@@ -57,21 +57,36 @@ export function App() {
   const [aba, setAba] = useState<Aba>('agora');
   const [avisoInsta, setAvisoInsta] = useState<null | 'inicio' | 'fim'>(null);
   const insta = useRef({ estado: lerInsta(CHAVE_INSTA), fimVisto: lerInsta(CHAVE_INSTA_FIM) === '1' });
+  const [visitas, setVisitas] = useState<number | null>(null);
+
+  // Conta este aparelho (uma vez só) e acompanha o total de aparelhos que abriram o site
+  useEffect(() => {
+    if (MODO !== 'ao-vivo') return;
+    contarVisita();
+    const ler = () => lerVisitas().then((n) => n !== null && setVisitas(n));
+    ler();
+    const t = setInterval(ler, 10 * 60_000);
+    return () => clearInterval(t);
+  }, []);
+  // O Instagram só aparece depois de CONFIG.instagramMinVisitas aparelhos (na simulação, sempre)
+  const liberarInsta =
+    !!CONFIG.instagram &&
+    (MODO === 'replay' || CONFIG.instagramMinVisitas <= 0 || (visitas !== null && visitas >= CONFIG.instagramMinVisitas));
 
   // Aviso do Instagram: sobe uma vez por pessoa depois de um tempo usando o site...
   useEffect(() => {
-    if (!CONFIG.instagram || insta.current.estado) return;
+    if (!liberarInsta || insta.current.estado) return;
     const t = setTimeout(() => {
       if (!insta.current.estado) setAvisoInsta((a) => a ?? 'inicio');
     }, ESPERA_AVISO_MS);
     return () => clearTimeout(t);
-  }, []);
+  }, [liberarInsta]);
   // ...e uma última vez no fim da apuração, para quem fechou sem seguir
   useEffect(() => {
-    if (!CONFIG.instagram || !resultado || resultado.pctSecoes < 0.99) return;
+    if (!liberarInsta || !resultado || resultado.pctSecoes < 0.99) return;
     if (insta.current.estado === 'seguiu' || insta.current.fimVisto) return;
     setAvisoInsta('fim');
-  }, [resultado]);
+  }, [resultado, liberarInsta]);
   const fecharInsta = (seguiu: boolean) => {
     const eraFim = avisoInsta === 'fim';
     setAvisoInsta(null);
@@ -216,7 +231,7 @@ export function App() {
         {esperando && prep && (
           <>
             <Espera agora={agora} votos1t={totais1t} />
-            <CartaoInsta seguir={seguirPeloCartao} />
+            {liberarInsta && <CartaoInsta seguir={seguirPeloCartao} />}
             <ComoFunciona />
           </>
         )}
@@ -232,7 +247,7 @@ export function App() {
             <Apuracao pctSecoes={resultado.pctSecoes} atualizado={atualizado} />
             <Placar r={resultado} />
             <Veredito r={resultado} />
-            <CartaoInsta seguir={seguirPeloCartao} />
+            {liberarInsta && <CartaoInsta seguir={seguirPeloCartao} />}
             <section className="card">
               <h2 className="card-title">Como a apuração está andando</h2>
               <p className="card-sub">Fatia do Lula entre os dois, conforme as seções são apuradas.</p>
