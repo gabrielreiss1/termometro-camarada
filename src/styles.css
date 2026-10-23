@@ -224,5 +224,31 @@ a { color: var(--blue); font-weight: 600; }
 .regras p { font-size: 13.5px; color: #333; margin-bottom: 6px; }
 .fontes { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
 
+/* Instagram */
+.cartao-insta { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); font-weight: 400; }
+.insta-icones { position: relative; width: 56px; height: 52px; flex: 0 0 auto; }
+.insta-icones .insta-app { position: absolute; left: 0; top: 0; width: 44px; height: 44px; font-size: 27px; }
+.insta-icones .icone-insta { position: absolute; left: 28px; top: 24px; width: 28px; height: 28px; border-radius: 8px; box-shadow: 0 0 0 2.5px #fff; }
+.insta-texto { flex: 1; display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+.insta-texto strong { font-size: 15px; font-weight: 800; }
+.insta-texto span { font-size: 12.5px; color: #555; }
+.insta-texto b { color: var(--ink); }
+.insta-botao { flex: 0 0 auto; background: var(--blue); color: #fff; font-weight: 800; font-size: 13px; padding: 9px 14px; border-radius: 10px; }
+.aviso-insta {
+  position: fixed; left: 50%; bottom: 0; z-index: 20;
+  width: 100%; max-width: 480px; transform: translateX(-50%);
+  background: #fff; border-radius: 18px 18px 0 0; padding: 20px 18px calc(18px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+  animation: subir 0.35s ease-out;
+}
+@keyframes subir { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .aviso-insta { animation: none; } }
+.aviso-topo { display: flex; align-items: center; gap: 14px; padding-right: 30px; }
+.aviso-topo strong { font-size: 17px; font-weight: 800; }
+.aviso-topo p { font-size: 13px; color: #555; line-height: 1.4; margin-top: 2px; }
+.aviso-topo b { color: var(--ink); }
+.aviso-fechar { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border: none; border-radius: 50%; background: var(--gray); color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; font-family: inherit; }
+.btn-insta { display: block; text-align: center; text-decoration: none; background: linear-gradient(90deg, #d62976, #962fbf 60%, #4f5bd5); }
+
 .rodape { text-align: center; padding: 6px 16px 32px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .rodape .simbolo { color: #c0271a; font-size: 16px; margin-left: 2px; }

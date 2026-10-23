@@ -25,6 +25,9 @@ export const CONFIG = {
   /** Município entra na medição de comparecimento a partir desta fração de seções apuradas. */
   minApuradoComparecimento: 0.95,
 
+  /** Perfil divulgado no site (cartão, aviso de baixo e "Copiar resumo"); null desliga tudo. */
+  instagram: '2turnocamarada' as string | null,
+
   simulacoes: 400,
   inicioApuracao: '2026-10-25T17:00:00-03:00',
   /** Abaixo desta fração do eleitorado apurado, o veredito fica "aguardando". */

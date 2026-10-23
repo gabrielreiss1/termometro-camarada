@@ -149,7 +149,70 @@ const VEREDITOS = {
 function textoResumo(r: Resultado) {
   const d = r.delta ?? 0;
   const lado = d >= 0 ? 'acima' : 'abaixo';
-  return `Termômetro Camarada ☭ Com ${pct(r.pctSecoes)} das seções apuradas, Lula está ${pontos(d)} ponto ${lado} do que as pesquisas previam nos mesmos municípios. Projeção: ${pct(r.projecao)} (${pct(r.p10)} a ${pct(r.p90)}). ${location.origin}`;
+  const insta = CONFIG.instagram ? ` · Insta @${CONFIG.instagram}` : '';
+  return `Termômetro Camarada ☭ Com ${pct(r.pctSecoes)} das seções apuradas, Lula está ${pontos(d)} ponto ${lado} do que as pesquisas previam nos mesmos municípios. Projeção: ${pct(r.projecao)} (${pct(r.p10)} a ${pct(r.p90)}). ${location.origin}${insta}`;
+}
+
+const linkInsta = () => `https://www.instagram.com/${CONFIG.instagram}/`;
+
+function IconeInsta({ tamanho = 40 }: { tamanho?: number }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 40 40" aria-hidden="true" className="icone-insta">
+      <defs>
+        <linearGradient id="ig-grad" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stopColor="#feda75" />
+          <stop offset="0.3" stopColor="#fa7e1e" />
+          <stop offset="0.55" stopColor="#d62976" />
+          <stop offset="0.8" stopColor="#962fbf" />
+          <stop offset="1" stopColor="#4f5bd5" />
+        </linearGradient>
+      </defs>
+      <rect width="40" height="40" rx="11" fill="url(#ig-grad)" />
+      <rect x="9" y="9" width="22" height="22" rx="7" fill="none" stroke="#fff" strokeWidth="2.6" />
+      <circle cx="20" cy="20" r="5.2" fill="none" stroke="#fff" strokeWidth="2.6" />
+      <circle cx="26.6" cy="13.4" r="1.6" fill="#fff" />
+    </svg>
+  );
+}
+
+function IconesInsta() {
+  return (
+    <span className="insta-icones" aria-hidden="true">
+      <span className="avatar simbolo insta-app">☭</span>
+      <IconeInsta />
+    </span>
+  );
+}
+
+export function CartaoInsta() {
+  if (!CONFIG.instagram) return null;
+  return (
+    <a className="card cartao-insta" href={linkInsta()} target="_blank" rel="noreferrer">
+      <IconesInsta />
+      <span className="insta-texto">
+        <strong>Tá gostando?</strong>
+        <span>Siga <b>@{CONFIG.instagram}</b> no Instagram</span>
+      </span>
+      <span className="insta-botao">Seguir</span>
+    </a>
+  );
+}
+
+export function AvisoInsta({ fechar }: { fechar: () => void }) {
+  if (!CONFIG.instagram) return null;
+  return (
+    <div className="aviso-insta" role="dialog" aria-label="Siga o Termômetro Camarada no Instagram">
+      <button className="aviso-fechar" onClick={fechar} aria-label="Fechar">×</button>
+      <div className="aviso-topo">
+        <IconesInsta />
+        <div>
+          <strong>Tá gostando?</strong>
+          <p>Siga <b>@{CONFIG.instagram}</b> no Instagram para acompanhar a apuração.</p>
+        </div>
+      </div>
+      <a className="btn btn-insta" href={linkInsta()} target="_blank" rel="noreferrer" onClick={fechar}>Seguir no Instagram</a>
+    </div>
+  );
 }
 
 export function Veredito({ r }: { r: Resultado }) {
