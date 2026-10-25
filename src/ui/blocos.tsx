@@ -55,15 +55,6 @@ export function Abas({ aba, mudar }: { aba: Aba; mudar: (a: Aba) => void }) {
   );
 }
 
-export function Aviso() {
-  return (
-    <p className="info">
-      <strong>Projeção independente.</strong> Não é um site do TSE. Resultado oficial em{' '}
-      <a href="https://resultados.tse.jus.br" target="_blank" rel="noreferrer">resultados.tse.jus.br</a>.
-    </p>
-  );
-}
-
 export function Apuracao({ pctSecoes, atualizado }: { pctSecoes: number; atualizado: Date | null }) {
   return (
     <section className="card">
@@ -132,9 +123,6 @@ export function Placar({ r }: { r: Resultado }) {
       {total > 0 && (
         <p className="nota">Diferença: <b>{votos(Math.abs(lula - flavio))}</b> votos para {lula >= flavio ? 'Lula' : 'Flávio'}.</p>
       )}
-      <p className="info" style={{ marginTop: 12 }}>
-        <strong>As urnas que chegam primeiro favorecem Flávio.</strong> Por isso o placar engana no começo.
-      </p>
     </section>
   );
 }

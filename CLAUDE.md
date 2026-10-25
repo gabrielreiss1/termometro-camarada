@@ -22,5 +22,5 @@ Site que projeta o 2º turno presidencial de 25/10/2026 (Lula × Flávio Bolsona
 ## Cuidados
 
 - O TSE bloqueia o IP por 10 minutos com excesso de requisições ou 404 repetidos. Use só os endereços de `src/engine/tse.ts`; não invente URLs.
-- A faixa "Projeção independente. Não é um site do TSE" deve continuar visível.
+- Mantenha algum aviso de que não é resultado oficial. Hoje ele está no rodapé do "Como funciona" (aba Entenda e tela de espera: "Projeção independente. Não é um site do TSE nem da Justiça Eleitoral") e no veredito ("Estimativa independente, não é probabilidade nem resultado oficial"). A faixa do topo e a frase "As urnas que chegam primeiro favorecem Flávio" saíram a pedido do dono em 25/10.
 - Endereços do TSE: eleição do 1º turno 6257, do 2º turno 6258, cargo Presidente 1.

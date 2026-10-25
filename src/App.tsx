@@ -10,7 +10,7 @@ import {
 } from './fonte.ts';
 import { Grafico } from './ui/Grafico.tsx';
 import {
-  Abas, Apuracao, Aviso, ComoFunciona, Comparecimento, Espera, Estados, Placar, Rodape, Topo, Transferencia, Veredito,
+  Abas, Apuracao, ComoFunciona, Comparecimento, Espera, Estados, Placar, Rodape, Topo, Transferencia, Veredito,
   type Aba, type Status,
 } from './ui/blocos.tsx';
 
@@ -155,7 +155,6 @@ export function App() {
           </p>
         )}
         {erroBase && <p className="erro">{erroBase}</p>}
-        {(esperando || aba === 'agora') && <Aviso />}
         {esperando && prep && (
           <>
             <Espera agora={agora} votos1t={totais1t} />
