@@ -55,15 +55,6 @@ export function Abas({ aba, mudar }: { aba: Aba; mudar: (a: Aba) => void }) {
   );
 }
 
-export function Aviso() {
-  return (
-    <p className="info">
-      <strong>Projeção independente.</strong> Não é um site do TSE. Resultado oficial em{' '}
-      <a href="https://resultados.tse.jus.br" target="_blank" rel="noreferrer">resultados.tse.jus.br</a>.
-    </p>
-  );
-}
-
 export function Apuracao({ pctSecoes, atualizado }: { pctSecoes: number; atualizado: Date | null }) {
   return (
     <section className="card">
@@ -132,9 +123,6 @@ export function Placar({ r }: { r: Resultado }) {
       {total > 0 && (
         <p className="nota">Diferença: <b>{votos(Math.abs(lula - flavio))}</b> votos para {lula >= flavio ? 'Lula' : 'Flávio'}.</p>
       )}
-      <p className="info" style={{ marginTop: 12 }}>
-        <strong>As urnas que chegam primeiro favorecem Flávio.</strong> Por isso o placar engana no começo.
-      </p>
     </section>
   );
 }
@@ -354,6 +342,7 @@ export function Estados({ r, terceiro }: { r: Resultado; terceiro: Map<string, {
                 <span className={`uf-dif d ${cor}`}>{u.delta === null ? '—' : pontos(u.delta)}</span>
               </div>
               <p className="uf-sub">
+                {u.uf === 'zz' ? 'Exterior (outros países) · ' : ''}
                 {t ? `3º no 1º turno: ${NOME_CURTO[t.candidato]} (${pct(t.pct)})` : ''}
                 {u.dComparecimento !== null ? ` · comparecimento ${pontos(u.dComparecimento)} pt` : ''}
               </p>
@@ -374,6 +363,7 @@ export function ComoFunciona() {
         <p>O placar do TSE engana no começo porque as cidades que apuram primeiro votam mais no Flávio.</p>
         <p>O termômetro compara cada cidade apurada com o que as pesquisas e o 1º turno previam para aquela mesma cidade.</p>
         <p>Se Lula está indo melhor ou pior que o previsto, essa diferença é aplicada ao que falta apurar, e daí sai a projeção.</p>
+        <p>Os votos dos brasileiros que moram em outros países também entram na conta: o exterior é tratado como mais um estado (EXT na aba Estados).</p>
         <h3>De onde vem o "previsto"</h3>
         <p>Do resultado de cada cidade no 1º turno, mais a transferência dos votos dos outros candidatos. Depois, tudo é ajustado por igual para o total do Brasil dar o empate da pesquisa {CONFIG.fonteEsperadoCurta}.</p>
         <h3>Limitações</h3>
@@ -398,9 +388,10 @@ export function Espera({ agora, votos1t }: { agora: number; votos1t: { lula: num
   return (
     <>
       <section className="card centro">
-        <h2 className="card-title">A apuração começa às 17h de domingo</h2>
+        <h2 className="card-title">Os resultados começam a sair às 17h</h2>
         <p className="relogio">{h >= 24 ? `${Math.floor(h / 24)}d ` : ''}{dois(h % 24)}:{dois(m)}:{dois(s)}</p>
         <p className="card-sub">A página se atualiza sozinha quando os primeiros resultados saírem.</p>
+        <p className="nota">No exterior, cada país vota no seu horário, mas o TSE só divulga os votos de lá junto com os do Brasil, a partir das 17h (horário de Brasília).</p>
       </section>
       <section className="card">
         <h2 className="card-title">Como foi o 1º turno</h2>

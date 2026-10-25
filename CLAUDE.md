@@ -12,7 +12,8 @@ Site que projeta o 2º turno presidencial de 25/10/2026 (Lula × Flávio Bolsona
 ## Como funciona
 
 - O navegador de cada visitante lê direto do TSE (`src/engine/coletor.ts`) a cada 1 minuto: placar e andamento do Brasil, e resultado e andamento por município das UFs que mudaram. Não há servidor na apuração.
-- `public/dados/base-1t.json`: resultado do 1º turno por município (5.757), gerado uma vez por `npm run base` e conferido com o total nacional. Não regenere sem motivo (são 5.757 requisições ao TSE).
+- `public/dados/base-1t.json`: resultado do 1º turno por município (5.757: 5.571 no Brasil e 186 no exterior), gerado uma vez por `npm run base` e conferido com o total nacional. Não regenere sem motivo (são 5.757 requisições ao TSE).
+- Exterior: o TSE o trata como a UF `zz` (186 cidades, nas listas do 1º e do 2º turno). Ele já entra em tudo como mais um estado: base, leitura ao vivo, conta (região `EX` em `config.ts`) e tela ("EXT" na aba Estados). Pesa cerca de 0,3% dos votos válidos.
 - `src/engine/motor.ts`: esperado por município = 1º turno + transferência dos outros candidatos (`CONFIG.matriz`, Quaest 17–20/10), ajustado por igual para o total nacional dar `CONFIG.esperadoNacionalLula` (50%, Datafolha 20–22/10). Compara o observado com o esperado nos mesmos municípios apurados, por UF (puxando para a região e depois para o Brasil quando há pouco dado), projeta o restante, calcula a faixa (simulações) e o efeito do comparecimento.
 - `src/engine/simulador.ts`: apuração simulada para testes. No site: `?replay=igual|mais2|menos2|regional|matriz-errada|comparecimento|vies|curva-1t` e `&vel=6`. `?eleicao=1t` lê os arquivos reais do 1º turno no TSE. `?espera=1` força a contagem regressiva.
 - `netlify/functions/gravador.mts`: roda a cada minuto só na janela da apuração e guarda a série do gráfico (Netlify Blobs); `serie.mts` a serve em `/api/serie`.
@@ -21,5 +22,5 @@ Site que projeta o 2º turno presidencial de 25/10/2026 (Lula × Flávio Bolsona
 ## Cuidados
 
 - O TSE bloqueia o IP por 10 minutos com excesso de requisições ou 404 repetidos. Use só os endereços de `src/engine/tse.ts`; não invente URLs.
-- A faixa "Projeção independente. Não é um site do TSE" deve continuar visível.
+- Mantenha algum aviso de que não é resultado oficial. Hoje ele está no rodapé do "Como funciona" (aba Entenda e tela de espera: "Projeção independente. Não é um site do TSE nem da Justiça Eleitoral") e no veredito ("Estimativa independente, não é probabilidade nem resultado oficial"). A faixa do topo e a frase "As urnas que chegam primeiro favorecem Flávio" saíram a pedido do dono em 25/10.
 - Endereços do TSE: eleição do 1º turno 6257, do 2º turno 6258, cargo Presidente 1.

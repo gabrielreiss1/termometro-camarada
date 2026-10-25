@@ -4,8 +4,8 @@ Projeção independente da apuração do 2º turno presidencial (25/10/2026). O 
 
 ## Como funciona (técnico)
 
-- **Sem servidor na apuração.** O navegador de cada visitante lê direto do TSE, a cada minuto, 57 arquivos pequenos: o placar e o andamento do Brasil, mais o resultado e o andamento por município de cada UF que mudou. A conta é feita ali mesmo (`src/engine/motor.ts`).
-- **Base do 1º turno.** `public/dados/base-1t.json` foi gerado uma vez com `npm run base`, a partir dos 5.757 arquivos de município do 1º turno, e conferido com o total nacional do TSE.
+- **Sem servidor na apuração.** O navegador de cada visitante lê direto do TSE, a cada minuto, até 58 arquivos pequenos: o placar e o andamento do Brasil, mais o resultado e o andamento por município de cada UF que mudou (as 27 e o exterior, que o TSE chama de ZZ). A conta é feita ali mesmo (`src/engine/motor.ts`).
+- **Base do 1º turno.** `public/dados/base-1t.json` foi gerado uma vez com `npm run base`, a partir dos 5.757 arquivos de município do 1º turno (5.571 cidades do Brasil e 186 do exterior), e conferido com o total nacional do TSE.
 - **Esperado.** Para cada cidade: 1º turno + transferência dos outros candidatos (Quaest 17–20/10). Depois, um ajuste igual para todas as cidades faz o total nacional dar 50% × 50% (Datafolha 20–22/10). Tudo isso está em `src/engine/config.ts`.
 - **Gravador (opcional).** `netlify/functions/gravador.mts` roda a cada minuto durante a apuração e guarda a série do gráfico. Assim, quem abre a página no meio da noite vê a curva desde o começo. Se ele falhar, o site continua funcionando e o gráfico só começa quando a pessoa abriu a página.
 
