@@ -127,10 +127,10 @@ export function Placar({ r }: { r: Resultado }) {
   );
 }
 
-const VEREDITOS = {
+// Sem etiqueta enquanto a faixa provável cruza os 50% ("empate técnico" confundia quem lê)
+const VEREDITOS: Partial<Record<Resultado['veredito'], { texto: string; cls: string }>> = {
   aguardando: { texto: 'Aguardando resultados', cls: 'v-aguardando' },
   bom: { texto: 'Bom para Lula', cls: 'v-bom' },
-  empate: { texto: 'Empate técnico', cls: 'v-empate' },
   ruim: { texto: 'Ruim para Lula', cls: 'v-ruim' },
 };
 
@@ -155,7 +155,7 @@ export function Veredito({ r }: { r: Resultado }) {
   };
   return (
     <section className="card">
-      <span className={`etiqueta ${v.cls}`}>{v.texto}</span>
+      {v && <span className={`etiqueta ${v.cls}`}>{v.texto}</span>}
       {r.delta === null ? (
         <p className="frase">Assim que os primeiros votos forem apurados, o termômetro compara cada lugar com o que as pesquisas previam para ele.</p>
       ) : (

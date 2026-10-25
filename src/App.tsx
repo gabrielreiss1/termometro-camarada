@@ -8,7 +8,7 @@ import { ColetorTSE } from './engine/coletor.ts';
 import {
   buscarJson, gravarSerieLocal, juntarSeries, lerSerieGravador, lerSerieLocal, pontoDe, type Ponto,
 } from './fonte.ts';
-import { Grafico } from './ui/Grafico.tsx';
+import { Grafico, GraficoProjecao } from './ui/Grafico.tsx';
 import {
   Abas, Apuracao, ComoFunciona, Comparecimento, Espera, Estados, Placar, Rodape, Topo, Transferencia, Veredito,
   type Aba, type Status,
@@ -173,6 +173,11 @@ export function App() {
             <Apuracao pctSecoes={resultado.pctSecoes} atualizado={atualizado} />
             <Placar r={resultado} />
             <Veredito r={resultado} />
+            <section className="card">
+              <h2 className="card-title">Projeção ao longo da apuração</h2>
+              <p className="card-sub">Projeção final do Lula a cada atualização. A faixa clara é o resultado provável.</p>
+              <GraficoProjecao serie={serie} />
+            </section>
             <section className="card">
               <h2 className="card-title">Como a apuração está andando</h2>
               <p className="card-sub">Fatia do Lula entre os dois, conforme as seções são apuradas.</p>
