@@ -400,9 +400,10 @@ export function Espera({ agora, votos1t }: { agora: number; votos1t: { lula: num
   return (
     <>
       <section className="card centro">
-        <h2 className="card-title">A apuração começa às 17h de domingo</h2>
+        <h2 className="card-title">Os resultados começam a sair às 17h</h2>
         <p className="relogio">{h >= 24 ? `${Math.floor(h / 24)}d ` : ''}{dois(h % 24)}:{dois(m)}:{dois(s)}</p>
         <p className="card-sub">A página se atualiza sozinha quando os primeiros resultados saírem.</p>
+        <p className="nota">No exterior, cada país vota no seu horário, mas o TSE só divulga os votos de lá junto com os do Brasil, a partir das 17h (horário de Brasília).</p>
       </section>
       <section className="card">
         <h2 className="card-title">Como foi o 1º turno</h2>
