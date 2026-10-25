@@ -354,6 +354,7 @@ export function Estados({ r, terceiro }: { r: Resultado; terceiro: Map<string, {
                 <span className={`uf-dif d ${cor}`}>{u.delta === null ? '—' : pontos(u.delta)}</span>
               </div>
               <p className="uf-sub">
+                {u.uf === 'zz' ? 'Exterior (outros países) · ' : ''}
                 {t ? `3º no 1º turno: ${NOME_CURTO[t.candidato]} (${pct(t.pct)})` : ''}
                 {u.dComparecimento !== null ? ` · comparecimento ${pontos(u.dComparecimento)} pt` : ''}
               </p>
@@ -374,6 +375,7 @@ export function ComoFunciona() {
         <p>O placar do TSE engana no começo porque as cidades que apuram primeiro votam mais no Flávio.</p>
         <p>O termômetro compara cada cidade apurada com o que as pesquisas e o 1º turno previam para aquela mesma cidade.</p>
         <p>Se Lula está indo melhor ou pior que o previsto, essa diferença é aplicada ao que falta apurar, e daí sai a projeção.</p>
+        <p>Os votos dos brasileiros que moram em outros países também entram na conta: o exterior é tratado como mais um estado (EXT na aba Estados).</p>
         <h3>De onde vem o "previsto"</h3>
         <p>Do resultado de cada cidade no 1º turno, mais a transferência dos votos dos outros candidatos. Depois, tudo é ajustado por igual para o total do Brasil dar o empate da pesquisa {CONFIG.fonteEsperadoCurta}.</p>
         <h3>Limitações</h3>
