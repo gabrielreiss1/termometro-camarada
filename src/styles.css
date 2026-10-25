@@ -150,6 +150,7 @@ a { color: var(--blue); font-weight: 600; }
 .pt-observado { fill: var(--lula); }
 .pt-projecao { fill: var(--blue); }
 .l-projecao-cheia { fill: none; stroke: var(--blue); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.l-projecao-guia { stroke: var(--blue); stroke-width: 2; stroke-dasharray: 0.1 5; stroke-linecap: round; }
 .anel { stroke: #fff; stroke-width: 2; }
 .mira { stroke: var(--muted-2); stroke-width: 1; }
 .rotulo-fim { font-size: 11px; font-weight: 800; fill: var(--ink); font-family: Poppins, system-ui, sans-serif; paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
