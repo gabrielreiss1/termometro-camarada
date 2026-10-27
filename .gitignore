@@ -4,3 +4,4 @@ dados-brutos
 .netlify
 .env
 *.log
+dist-neutra

@@ -236,3 +236,30 @@ a { color: var(--blue); font-weight: 600; }
 
 .rodape { text-align: center; padding: 6px 16px 32px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .rodape .simbolo { color: #c0271a; font-size: 16px; margin-left: 2px; }
+
+/* Versão neutra (VITE_MARCA=neutra): as cores de cada candidato no lugar do "bom/ruim para Lula" */
+.v-lula { background: #ffe2df; color: #b42318; }
+.v-flavio { background: #e1ebff; color: #1849b8; }
+.dupla { background: var(--gray); border-radius: 10px; padding: 14px 16px; }
+.dupla-linhas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.dupla-cand { background: #fff; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; }
+.dupla-nome { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+.dupla-nome i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.dupla-cand strong { font-size: 28px; font-weight: 900; line-height: 1.15; margin-top: 2px; }
+.dupla-cand small { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.dupla-chance { font-size: 12.5px; color: #555; font-weight: 600; margin-top: 10px; text-align: center; }
+.ajuda-lula { background: #ffe2df; color: #b42318; }
+.ajuda-flavio { background: #e1ebff; color: #1849b8; }
+.faixa-lula { fill: var(--lula); opacity: 0.1; }
+.faixa-flavio { fill: var(--flavio); opacity: 0.1; }
+.l-projecao-cheia-lula, .l-projecao-cheia-flavio { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.l-projecao-cheia-lula { stroke: var(--lula); }
+.l-projecao-cheia-flavio { stroke: var(--flavio); }
+.l-projecao-guia-lula, .l-projecao-guia-flavio { stroke-width: 2; stroke-dasharray: 0.1 5; stroke-linecap: round; }
+.l-projecao-guia-lula { stroke: var(--lula); }
+.l-projecao-guia-flavio { stroke: var(--flavio); }
+.pt-projecao-lula { fill: var(--lula); }
+.pt-projecao-flavio { fill: var(--flavio); }
+.uf-neutra .uf-head, .uf-neutra .uf-row { grid-template-columns: 52px minmax(0, 1fr) 64px 64px; }
+.uf-num.lider-lula { color: #b42318; font-weight: 800; }
+.uf-num.lider-flavio { color: #1849b8; font-weight: 800; }

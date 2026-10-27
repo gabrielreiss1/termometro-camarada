@@ -48,6 +48,18 @@ export function juntarSeries(...series: Ponto[][]): Ponto[] {
   return [...porPct.values()].sort((a, b) => a.pct - b.pct);
 }
 
+/** Série da noite da apuração (25/10/2026), guardada no site depois que o gravador terminou. */
+export async function lerSerieArquivo(): Promise<Ponto[]> {
+  try {
+    const resp = await fetch('/dados/serie-2t.json');
+    if (!resp.ok) return [];
+    const dados = await resp.json();
+    return Array.isArray(dados?.pontos) ? dados.pontos : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function lerSerieGravador(): Promise<Ponto[]> {
   try {
     const resp = await fetch('/api/serie', { cache: 'no-cache' });

@@ -3,6 +3,7 @@ import { CONFIG, NOMES_OUTROS, NOMES_REGIAO } from '../engine/config.ts';
 import type { Resultado, ResultadoUF } from '../engine/motor.ts';
 import type { Candidato } from '../engine/tipos.ts';
 import { horaBrasilia, pct, plural, pontos, votos } from '../formato.ts';
+import { NEUTRA, NOME_SITE } from '../marca.ts';
 
 export type Status =
   | { tipo: 'carregando' }
@@ -26,9 +27,11 @@ export function Topo({ status }: { status: Status }) {
   return (
     <header className="topbar">
       <div className="topbar-user">
-        <div className="avatar simbolo" aria-hidden="true">☭</div>
+        {NEUTRA
+          ? <div className="avatar" aria-hidden="true">2º</div>
+          : <div className="avatar simbolo" aria-hidden="true">☭</div>}
         <div className="topbar-name">
-          <strong>Termômetro Camarada</strong>
+          <strong>{NOME_SITE}</strong>
           <span>2º turno · Presidente</span>
         </div>
       </div>
@@ -128,13 +131,22 @@ export function Placar({ r }: { r: Resultado }) {
 }
 
 // Sem etiqueta enquanto a faixa provável cruza os 50% ("empate técnico" confundia quem lê)
-const VEREDITOS: Partial<Record<Resultado['veredito'], { texto: string; cls: string }>> = {
-  aguardando: { texto: 'Aguardando resultados', cls: 'v-aguardando' },
-  bom: { texto: 'Bom para Lula', cls: 'v-bom' },
-  ruim: { texto: 'Ruim para Lula', cls: 'v-ruim' },
-};
+const VEREDITOS: Partial<Record<Resultado['veredito'], { texto: string; cls: string }>> = NEUTRA
+  ? {
+      aguardando: { texto: 'Aguardando resultados', cls: 'v-aguardando' },
+      bom: { texto: 'Vantagem Lula', cls: 'v-lula' },
+      ruim: { texto: 'Vantagem Flávio', cls: 'v-flavio' },
+    }
+  : {
+      aguardando: { texto: 'Aguardando resultados', cls: 'v-aguardando' },
+      bom: { texto: 'Bom para Lula', cls: 'v-bom' },
+      ruim: { texto: 'Ruim para Lula', cls: 'v-ruim' },
+    };
 
 function textoResumo(r: Resultado) {
+  if (NEUTRA) {
+    return `${NOME_SITE}: com ${pct(r.pctSecoes)} das seções apuradas, a projeção é Lula ${pct(r.projecao)} (${pct(r.p10)} a ${pct(r.p90)}) × Flávio ${pct(1 - r.projecao)} (${pct(1 - r.p90)} a ${pct(1 - r.p10)}). ${location.origin}`;
+  }
   const d = r.delta ?? 0;
   const lado = d >= 0 ? 'acima' : 'abaixo';
   return `Termômetro Camarada ☭ Com ${pct(r.pctSecoes)} das seções apuradas, Lula está ${pontos(d)} ponto ${lado} do que as pesquisas previam nos mesmos municípios. Projeção: ${pct(r.projecao)} (${pct(r.p10)} a ${pct(r.p90)}). ${location.origin}`;
@@ -160,6 +172,7 @@ export function Veredito({ r }: { r: Resultado }) {
         <p className="frase">Assim que os primeiros votos forem apurados, o termômetro compara cada lugar com o que as pesquisas previam para ele.</p>
       ) : (
         <>
+          {NEUTRA ? <ProjecaoDupla r={r} /> : (<>
           <p className="frase">
             Nos lugares já apurados, Lula está <strong>{pontos(r.delta)} ponto</strong> {r.delta >= 0 ? 'acima' : 'abaixo'} do que as pesquisas previam.
           </p>
@@ -189,11 +202,35 @@ export function Veredito({ r }: { r: Resultado }) {
                   : <>No que falta apurar, Lula pode ficar até <strong>{pontos(-r.precisa).replace('+', '')}</strong> abaixo do previsto e ainda vence.</>}
             </p>
           )}
+          </>)}
           <p className="nota">Estimativa independente, não é probabilidade nem resultado oficial.</p>
           <button className="btn" onClick={copiar}>{copiado ? 'Resumo copiado' : 'Copiar resumo'}</button>
         </>
       )}
     </section>
+  );
+}
+
+/** Projeção final dos dois candidatos lado a lado (versão neutra). */
+function ProjecaoDupla({ r }: { r: Resultado }) {
+  const chanceLula = Math.round(100 * r.chance);
+  return (
+    <div className="dupla">
+      <span className="me-banner-label">Projeção final</span>
+      <div className="dupla-linhas">
+        <div className="dupla-cand">
+          <span className="dupla-nome"><i className="leg-lula" />Lula</span>
+          <strong>{pct(r.projecao)}</strong>
+          <small>provável entre {pct(r.p10)} e {pct(r.p90)}</small>
+        </div>
+        <div className="dupla-cand">
+          <span className="dupla-nome"><i className="leg-flavio" />Flávio</span>
+          <strong>{pct(1 - r.projecao)}</strong>
+          <small>provável entre {pct(1 - r.p90)} e {pct(1 - r.p10)}</small>
+        </div>
+      </div>
+      <p className="dupla-chance">Chance estimada de vencer: Lula {chanceLula}% · Flávio {100 - chanceLula}%</p>
+    </div>
   );
 }
 
@@ -238,6 +275,7 @@ export function Comparecimento({ r }: { r: Resultado }) {
           </div>
         </>
       )}
+      {NEUTRA ? <AjudaNeutra efeito={efeito} semDados={semDados} /> : (
       <p className={`ajuda ${semDados ? 'ajuda-neutra' : efeito >= 0.0005 ? 'ajuda-sim' : efeito <= -0.0005 ? 'ajuda-nao' : 'ajuda-neutra'}`}>
         {semDados
           ? 'Ainda não dá para saber se o comparecimento está ajudando o Lula.'
@@ -247,11 +285,26 @@ export function Comparecimento({ r }: { r: Resultado }) {
               ? <>O comparecimento está <strong>atrapalhando o Lula</strong>: {pontos(efeito, 2)} ponto na projeção.</>
               : <>O comparecimento <strong>não está mudando nada</strong> para o Lula até agora.</>}
       </p>
+      )}
     </section>
   );
 }
 
+function AjudaNeutra({ efeito, semDados }: { efeito: number; semDados: boolean }) {
+  const favorece = semDados ? null : efeito >= 0.0005 ? 'Lula' : efeito <= -0.0005 ? 'Flávio' : null;
+  return (
+    <p className={`ajuda ${favorece === 'Lula' ? 'ajuda-lula' : favorece === 'Flávio' ? 'ajuda-flavio' : 'ajuda-neutra'}`}>
+      {semDados
+        ? 'Ainda não dá para saber a quem o comparecimento favorece.'
+        : favorece
+          ? <>O comparecimento está <strong>favorecendo {favorece}</strong>: {pontos(Math.abs(efeito), 2)} ponto na projeção dele.</>
+          : <>O comparecimento <strong>não está mudando</strong> a projeção até agora.</>}
+    </p>
+  );
+}
+
 export function Rodape() {
+  if (NEUTRA) return <footer className="rodape">Projeção independente com dados públicos do TSE.</footer>;
   return (
     <footer className="rodape">
       Desenvolvido por camaradas <span className="simbolo">☭</span>
@@ -298,7 +351,69 @@ type Ordem = 'peso' | 'delta' | 'apurado';
 
 const NOME_CURTO: Record<Candidato, string> = { cury: 'Cury', renan: 'Renan', caiado: 'Caiado', zema: 'Zema', demais: 'Demais' };
 
-export function Estados({ r, terceiro }: { r: Resultado; terceiro: Map<string, { candidato: Candidato; pct: number }> }) {
+export function Estados(props: { r: Resultado; terceiro: Map<string, { candidato: Candidato; pct: number }> }) {
+  return NEUTRA ? <EstadosNeutro {...props} /> : <EstadosCamarada {...props} />;
+}
+
+type OrdemNeutra = 'peso' | 'apurado' | 'disputa';
+
+function EstadosNeutro({ r, terceiro }: { r: Resultado; terceiro: Map<string, { candidato: Candidato; pct: number }> }) {
+  const [ordem, setOrdem] = useState<OrdemNeutra>('peso');
+  const linhas = useMemo(() => {
+    const chave: Record<OrdemNeutra, (u: ResultadoUF) => number> = {
+      peso: (u) => u.eleitorado,
+      apurado: (u) => u.pctSecoes,
+      disputa: (u) => (u.observado === null ? -Infinity : -Math.abs(u.observado - 0.5)),
+    };
+    return [...r.ufs].sort((a, b) => chave[ordem](b) - chave[ordem](a));
+  }, [r.ufs, ordem]);
+  return (
+    <>
+      <div>
+        <h2 className="titulo-aba">Por estado</h2>
+        <p className="sub-aba">Fatia de cada candidato entre os dois, nos municípios já apurados</p>
+      </div>
+      <div className="pills" role="group" aria-label="Ordenar por">
+        {(['peso', 'apurado', 'disputa'] as OrdemNeutra[]).map((o) => (
+          <button key={o} className={`pill ${ordem === o ? 'active' : ''}`} aria-pressed={ordem === o} onClick={() => setOrdem(o)}>
+            {o === 'peso' ? 'Eleitorado' : o === 'apurado' ? '% apurado' : 'Mais disputados'}
+          </button>
+        ))}
+      </div>
+      <div className="lista-uf uf-neutra">
+        <div className="uf-head">
+          <span>UF</span><span>Apurado</span><span className="c">Lula</span><span className="c">Flávio</span>
+        </div>
+        {linhas.map((u, i) => {
+          const t = terceiro.get(u.uf);
+          const lider = u.observado === null ? null : u.observado > 0.5 ? 'lula' : u.observado < 0.5 ? 'flavio' : null;
+          return (
+            <div className={`uf-item ${i % 2 ? 'alt' : ''}`} key={u.uf}>
+              <div className="uf-row">
+                <span className="uf-sigla">{u.uf === 'zz' ? 'EXT' : u.uf.toUpperCase()}</span>
+                <div>
+                  <div className="mini-barra"><div style={{ width: `${100 * u.pctSecoes}%` }} /></div>
+                  <div className="mini-pct">{pct(u.pctSecoes, 0)}</div>
+                </div>
+                <span className={`uf-num c ${lider === 'lula' ? 'lider-lula' : ''}`}>{u.observado === null ? '—' : pct(u.observado)}</span>
+                <span className={`uf-num c ${lider === 'flavio' ? 'lider-flavio' : ''}`}>{u.observado === null ? '—' : pct(1 - u.observado)}</span>
+              </div>
+              <p className="uf-sub">
+                {u.uf === 'zz' ? 'Exterior (outros países) · ' : ''}
+                {u.observado !== null && u.pctSecoes < 0.995 ? `Projeção: Lula ${pct(u.projecao)} × Flávio ${pct(1 - u.projecao)} · ` : ''}
+                {t ? `3º no 1º turno: ${NOME_CURTO[t.candidato]} (${pct(t.pct)})` : ''}
+                {u.dComparecimento !== null ? ` · comparecimento ${pontos(u.dComparecimento)} pt` : ''}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      <p className="nota">Em destaque, quem está na frente no estado. A projeção aparece enquanto o estado ainda não terminou de apurar.</p>
+    </>
+  );
+}
+
+function EstadosCamarada({ r, terceiro }: { r: Resultado; terceiro: Map<string, { candidato: Candidato; pct: number }> }) {
   const [ordem, setOrdem] = useState<Ordem>('peso');
   const limiar = r.precisa ?? 0;
   const linhas = useMemo(() => {
@@ -360,9 +475,15 @@ export function ComoFunciona() {
     <>
       <section className="card regras">
         <h2>Como funciona</h2>
+        {NEUTRA ? (<>
+          <p>No começo da apuração, o placar do TSE mostra só as cidades que apuram primeiro, que não representam o país inteiro.</p>
+          <p>O termômetro compara cada cidade apurada com o que as pesquisas e o 1º turno previam para aquela mesma cidade.</p>
+          <p>Se o resultado nas cidades apuradas está diferente do previsto, essa diferença é aplicada ao que falta apurar, e daí sai a projeção dos dois candidatos.</p>
+        </>) : (<>
         <p>O placar do TSE engana no começo porque as cidades que apuram primeiro votam mais no Flávio.</p>
         <p>O termômetro compara cada cidade apurada com o que as pesquisas e o 1º turno previam para aquela mesma cidade.</p>
         <p>Se Lula está indo melhor ou pior que o previsto, essa diferença é aplicada ao que falta apurar, e daí sai a projeção.</p>
+        </>)}
         <p>Os votos dos brasileiros que moram em outros países também entram na conta: o exterior é tratado como mais um estado (EXT na aba Estados).</p>
         <h3>De onde vem o "previsto"</h3>
         <p>Do resultado de cada cidade no 1º turno, mais a transferência dos votos dos outros candidatos. Depois, tudo é ajustado por igual para o total do Brasil dar o empate da pesquisa {CONFIG.fonteEsperadoCurta}.</p>
@@ -400,7 +521,9 @@ export function Espera({ agora, votos1t }: { agora: number; votos1t: { lula: num
       </section>
       <section className="card">
         <h2 className="card-title">O que vai aparecer aqui</h2>
-        <p className="card-sub">Às 17h, o placar do TSE vai mostrar Flávio na frente: as cidades que apuram primeiro votam mais nele.</p>
+        <p className="card-sub">{NEUTRA
+          ? 'No começo, o placar do TSE mostra só as cidades que apuram primeiro, que não representam o país inteiro.'
+          : 'Às 17h, o placar do TSE vai mostrar Flávio na frente: as cidades que apuram primeiro votam mais nele.'}</p>
         <p className="card-sub">O termômetro desconta isso: compara cada cidade apurada com o que era previsto para ela e projeta o resultado final.</p>
       </section>
     </>
