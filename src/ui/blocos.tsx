@@ -355,38 +355,69 @@ export function Estados(props: { r: Resultado; terceiro: Map<string, { candidato
   return NEUTRA ? <EstadosNeutro {...props} /> : <EstadosCamarada {...props} />;
 }
 
-type OrdemNeutra = 'peso' | 'apurado' | 'disputa';
+type Visao = 'dois' | 'lula' | 'flavio';
+type OrdemNeutra = 'peso' | 'apurado' | 'disputa' | 'delta';
+
+const NOME_VISAO: Record<Visao, string> = { dois: 'Os dois', lula: 'Lula', flavio: 'Flávio' };
+
+/** Números do estado do ponto de vista de um candidato: a fatia dele, a prevista e a diferença. */
+function doCandidato(u: ResultadoUF, visao: 'lula' | 'flavio') {
+  const sinal = visao === 'lula' ? 1 : -1;
+  const lado = (x: number | null) => (x === null ? null : visao === 'lula' ? x : 1 - x);
+  return { previsto: lado(u.esperado), agora: lado(u.observado), dif: u.delta === null ? null : sinal * u.delta };
+}
 
 function EstadosNeutro({ r, terceiro }: { r: Resultado; terceiro: Map<string, { candidato: Candidato; pct: number }> }) {
+  const [visao, setVisao] = useState<Visao>('dois');
   const [ordem, setOrdem] = useState<OrdemNeutra>('peso');
+  // "Mais disputados" só faz sentido vendo os dois; "Diferença", vendo um candidato
+  const ordens: OrdemNeutra[] = ['peso', 'apurado', visao === 'dois' ? 'disputa' : 'delta'];
+  const ordemAtual = ordens.includes(ordem) ? ordem : 'peso';
   const linhas = useMemo(() => {
     const chave: Record<OrdemNeutra, (u: ResultadoUF) => number> = {
       peso: (u) => u.eleitorado,
       apurado: (u) => u.pctSecoes,
       disputa: (u) => (u.observado === null ? -Infinity : -Math.abs(u.observado - 0.5)),
+      delta: (u) => (visao === 'dois' ? 0 : doCandidato(u, visao).dif ?? -Infinity),
     };
-    return [...r.ufs].sort((a, b) => chave[ordem](b) - chave[ordem](a));
-  }, [r.ufs, ordem]);
+    return [...r.ufs].sort((a, b) => chave[ordemAtual](b) - chave[ordemAtual](a));
+  }, [r.ufs, ordemAtual, visao]);
+
   return (
     <>
       <div>
         <h2 className="titulo-aba">Por estado</h2>
-        <p className="sub-aba">Fatia de cada candidato entre os dois, nos municípios já apurados</p>
+        <p className="sub-aba">
+          {visao === 'dois'
+            ? 'Fatia de cada candidato entre os dois, nos municípios já apurados'
+            : `Desempenho de ${NOME_VISAO[visao]} nos municípios já apurados, comparado com o previsto`}
+        </p>
       </div>
-      <div className="pills" role="group" aria-label="Ordenar por">
-        {(['peso', 'apurado', 'disputa'] as OrdemNeutra[]).map((o) => (
-          <button key={o} className={`pill ${ordem === o ? 'active' : ''}`} aria-pressed={ordem === o} onClick={() => setOrdem(o)}>
-            {o === 'peso' ? 'Eleitorado' : o === 'apurado' ? '% apurado' : 'Mais disputados'}
+      <div className="pills" role="group" aria-label="Ver">
+        {(['dois', 'lula', 'flavio'] as Visao[]).map((v) => (
+          <button key={v} className={`pill pill-${v} ${visao === v ? 'active' : ''}`} aria-pressed={visao === v} onClick={() => setVisao(v)}>
+            {NOME_VISAO[v]}
           </button>
         ))}
       </div>
-      <div className="lista-uf uf-neutra">
+      <div className="pills" role="group" aria-label="Ordenar por">
+        {ordens.map((o) => (
+          <button key={o} className={`pill ${ordemAtual === o ? 'active' : ''}`} aria-pressed={ordemAtual === o} onClick={() => setOrdem(o)}>
+            {o === 'peso' ? 'Eleitorado' : o === 'apurado' ? '% apurado' : o === 'disputa' ? 'Mais disputados' : 'Diferença'}
+          </button>
+        ))}
+      </div>
+      <div className={`lista-uf ${visao === 'dois' ? 'uf-neutra' : ''}`}>
         <div className="uf-head">
-          <span>UF</span><span>Apurado</span><span className="c">Lula</span><span className="c">Flávio</span>
+          {visao === 'dois'
+            ? <><span>UF</span><span>Apurado</span><span className="c">Lula</span><span className="c">Flávio</span></>
+            : <><span>UF</span><span>Apurado</span><span className="c">Previsto</span><span className="c">Agora</span><span className="d">Dif.</span></>}
         </div>
         {linhas.map((u, i) => {
           const t = terceiro.get(u.uf);
           const lider = u.observado === null ? null : u.observado > 0.5 ? 'lula' : u.observado < 0.5 ? 'flavio' : null;
+          const c = visao === 'dois' ? null : doCandidato(u, visao);
+          const cor = !c || c.dif === null || Math.abs(c.dif) < 0.0005 ? '' : c.dif > 0 ? 'bom' : 'atencao';
           return (
             <div className={`uf-item ${i % 2 ? 'alt' : ''}`} key={u.uf}>
               <div className="uf-row">
@@ -395,8 +426,18 @@ function EstadosNeutro({ r, terceiro }: { r: Resultado; terceiro: Map<string, { 
                   <div className="mini-barra"><div style={{ width: `${100 * u.pctSecoes}%` }} /></div>
                   <div className="mini-pct">{pct(u.pctSecoes, 0)}</div>
                 </div>
-                <span className={`uf-num c ${lider === 'lula' ? 'lider-lula' : ''}`}>{u.observado === null ? '—' : pct(u.observado)}</span>
-                <span className={`uf-num c ${lider === 'flavio' ? 'lider-flavio' : ''}`}>{u.observado === null ? '—' : pct(1 - u.observado)}</span>
+                {c ? (
+                  <>
+                    <span className="uf-num c">{c.previsto === null ? '—' : pct(c.previsto)}</span>
+                    <span className="uf-num c">{c.agora === null ? '—' : pct(c.agora)}</span>
+                    <span className={`uf-dif d ${cor}`}>{c.dif === null ? '—' : pontos(c.dif)}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className={`uf-num c ${lider === 'lula' ? 'lider-lula' : ''}`}>{u.observado === null ? '—' : pct(u.observado)}</span>
+                    <span className={`uf-num c ${lider === 'flavio' ? 'lider-flavio' : ''}`}>{u.observado === null ? '—' : pct(1 - u.observado)}</span>
+                  </>
+                )}
               </div>
               <p className="uf-sub">
                 {u.uf === 'zz' ? 'Exterior (outros países) · ' : ''}
@@ -408,7 +449,11 @@ function EstadosNeutro({ r, terceiro }: { r: Resultado; terceiro: Map<string, { 
           );
         })}
       </div>
-      <p className="nota">Em destaque, quem está na frente no estado. A projeção aparece enquanto o estado ainda não terminou de apurar.</p>
+      <p className="nota">
+        {visao === 'dois'
+          ? 'Em destaque, quem está na frente no estado. A projeção aparece enquanto o estado ainda não terminou de apurar.'
+          : `Previsto: o que o 1º turno e a transferência de votos dos outros candidatos indicavam para ${NOME_VISAO[visao]} nesses mesmos municípios, com tudo ajustado ao empate da pesquisa ${CONFIG.fonteEsperadoCurta}. Dif. em verde: acima do previsto; em vermelho: abaixo.`}
+      </p>
     </>
   );
 }

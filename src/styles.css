@@ -263,3 +263,5 @@ a { color: var(--blue); font-weight: 600; }
 .uf-neutra .uf-head, .uf-neutra .uf-row { grid-template-columns: 52px minmax(0, 1fr) 64px 64px; }
 .uf-num.lider-lula { color: #b42318; font-weight: 800; }
 .uf-num.lider-flavio { color: #1849b8; font-weight: 800; }
+.pill-lula.active { background: var(--lula); }
+.pill-flavio.active { background: var(--flavio); }
