@@ -90,30 +90,51 @@ export function Grafico({ serie: todos }: { serie: Ponto[] }) {
   );
 }
 
+interface LinhaProjecao {
+  nome: string;
+  /** sufixo das classes de cor ('' = azul do site) */
+  cor: string;
+  v: (p: Ponto) => number;
+  lo: (p: Ponto) => number;
+  hi: (p: Ponto) => number;
+}
+
+const SO_LULA: LinhaProjecao[] = [{ nome: 'Lula', cor: '', v: (p) => p.projecao, lo: (p) => p.p10, hi: (p) => p.p90 }];
+// Na versão neutra, as duas projeções: a do Flávio é o espelho da do Lula em torno dos 50%
+const OS_DOIS: LinhaProjecao[] = [
+  { nome: 'Lula', cor: '-lula', v: (p) => p.projecao, lo: (p) => p.p10, hi: (p) => p.p90 },
+  { nome: 'Flávio', cor: '-flavio', v: (p) => 1 - p.projecao, lo: (p) => 1 - p.p90, hi: (p) => 1 - p.p10 },
+];
+
 /**
- * Só a projeção final do Lula, com a faixa provável, a cada atualização, e um pontilhado que leva a
- * projeção de agora até 100% apurado. Tocar ou passar o mouse mostra cada momento.
+ * A projeção final (do Lula, ou dos dois com `dupla`), com a faixa provável, a cada atualização, e um
+ * pontilhado que leva a projeção de agora até 100% apurado. Tocar ou passar o mouse mostra cada momento.
  */
-export function GraficoProjecao({ serie: todos }: { serie: Ponto[] }) {
+export function GraficoProjecao({ serie: todos, dupla = false }: { serie: Ponto[]; dupla?: boolean }) {
   const [escolhido, setEscolhido] = useState<number | null>(null);
   const serie = todos.filter((p) => p.pct >= MIN_APURADO);
   if (serie.length < 2) {
     return <p className="nota">{AVISO_SEM_DADOS}</p>;
   }
+  const linhas = dupla ? OS_DOIS : SO_LULA;
   const ultimo = serie.length - 1;
   const x = (v: number) => M.l + v * (W - M.l - M.r);
-  const escala = escalaY(serie.flatMap((p) => [p.projecao, p.p10, p.p90]));
+  const escala = escalaY(serie.flatMap((p) => linhas.flatMap((l) => [l.v(p), l.lo(p), l.hi(p)])));
   const { y } = escala;
-  const linha = serie.map((p, i) => `${i ? 'L' : 'M'}${x(p.pct).toFixed(1)},${y(p.projecao).toFixed(1)}`).join('');
-  const faixa =
-    serie.map((p, i) => `${i ? 'L' : 'M'}${x(p.pct).toFixed(1)},${y(p.p90).toFixed(1)}`).join('') +
-    [...serie].reverse().map((p) => `L${x(p.pct).toFixed(1)},${y(p.p10).toFixed(1)}`).join('') + 'Z';
+  const caminho = (f: (p: Ponto) => number) => serie.map((p, k) => `${k ? 'L' : 'M'}${x(p.pct).toFixed(1)},${y(f(p)).toFixed(1)}`).join('');
+  const faixa = (l: LinhaProjecao) =>
+    caminho(l.hi) + [...serie].reverse().map((p) => `L${x(p.pct).toFixed(1)},${y(l.lo(p)).toFixed(1)}`).join('') + 'Z';
 
   const i = escolhido === null ? ultimo : Math.min(escolhido, ultimo);
   const ponto = serie[i];
   const fim = serie[ultimo];
   const fimX = x(fim.pct);
-  const fimY = y(fim.projecao);
+  // Rótulos do fim: quem está na frente fica acima da própria linha, o outro abaixo
+  const rotuloY = (l: LinhaProjecao) => {
+    const ly = y(l.v(fim));
+    const acima = linhas.length === 1 ? ly - 10 >= M.t + 10 : l.v(fim) >= 0.5;
+    return acima ? ly - 8 : ly + 18;
+  };
 
   const escolher = (e: PointerEvent<SVGSVGElement>) => {
     const caixa = e.currentTarget.getBoundingClientRect();
@@ -133,34 +154,49 @@ export function GraficoProjecao({ serie: todos }: { serie: Ponto[] }) {
     e.preventDefault();
   };
 
+  const descricao = dupla
+    ? `Projeção com ${pct(fim.pct)} apurado: Lula ${pct(fim.projecao)} e Flávio ${pct(1 - fim.projecao)}. Um pontilhado leva esses valores até 100% apurado. Use as setas para ver cada momento.`
+    : `Projeção do Lula: ${pct(serie[0].projecao)} com ${pct(serie[0].pct)} apurado e ${pct(fim.projecao)} com ${pct(fim.pct)} apurado, provável entre ${pct(fim.p10)} e ${pct(fim.p90)}. Um pontilhado leva esse valor até 100% apurado. Use as setas para ver cada momento.`;
+
   return (
     <figure className="grafico">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" tabIndex={0} className="grafico-interativo"
-        aria-label={`Projeção do Lula: ${pct(serie[0].projecao)} com ${pct(serie[0].pct)} apurado e ${pct(fim.projecao)} com ${pct(fim.pct)} apurado, provável entre ${pct(fim.p10)} e ${pct(fim.p90)}. Um pontilhado leva esse valor até 100% apurado. Use as setas para ver cada momento.`}
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" tabIndex={0} className="grafico-interativo" aria-label={descricao}
         onPointerDown={escolher} onPointerMove={escolher} onPointerLeave={() => setEscolhido(null)}
         onKeyDown={teclas} onBlur={() => setEscolhido(null)}>
         <GradeY {...escala} />
         <MarcasX x={x} marcas={[0, 0.25, 0.5, 0.75, 1]} />
         <line x1={M.l} x2={W - M.r} y1={y(0.5)} y2={y(0.5)} className="linha-50" />
-        <path d={faixa} className="faixa" />
-        <path d={linha} className="l-projecao-cheia" />
-        <line x1={fimX} x2={x(1)} y1={fimY} y2={fimY} className="l-projecao-guia" />
-        {escolhido !== null && (
-          <>
-            <line x1={x(ponto.pct)} x2={x(ponto.pct)} y1={M.t} y2={H - M.b} className="mira" />
-            <circle cx={x(ponto.pct)} cy={y(ponto.projecao)} r="4" className="pt-projecao anel" />
-          </>
-        )}
-        <circle cx={fimX} cy={fimY} r="4" className="pt-projecao anel" />
-        <text x={x(1)} y={fimY - 10 < M.t + 10 ? fimY + 18 : fimY - 8} className="rotulo-fim" textAnchor="end">
-          {pct(fim.projecao)}
-        </text>
+        {linhas.map((l) => <path key={`f${l.nome}`} d={faixa(l)} className={`faixa${l.cor}`} />)}
+        {linhas.map((l) => (
+          <g key={l.nome}>
+            <path d={caminho(l.v)} className={`l-projecao-cheia${l.cor}`} />
+            <line x1={fimX} x2={x(1)} y1={y(l.v(fim))} y2={y(l.v(fim))} className={`l-projecao-guia${l.cor}`} />
+          </g>
+        ))}
+        {escolhido !== null && <line x1={x(ponto.pct)} x2={x(ponto.pct)} y1={M.t} y2={H - M.b} className="mira" />}
+        {linhas.map((l) => (
+          <g key={`p${l.nome}`}>
+            {escolhido !== null && <circle cx={x(ponto.pct)} cy={y(l.v(ponto))} r="4" className={`pt-projecao${l.cor} anel`} />}
+            <circle cx={fimX} cy={y(l.v(fim))} r="4" className={`pt-projecao${l.cor} anel`} />
+            <text x={x(1)} y={rotuloY(l)} className="rotulo-fim" textAnchor="end">
+              {dupla ? `${l.nome} ${pct(l.v(fim))}` : pct(l.v(fim))}
+            </text>
+          </g>
+        ))}
       </svg>
       <figcaption className="leitura">
-        <span>
-          Com {pct(ponto.pct)} apurado: <strong>{pct(ponto.projecao)}</strong> (provável entre {pct(ponto.p10)} e {pct(ponto.p90)})
+        {dupla ? (
+          <span>
+            Com {pct(ponto.pct)} apurado: Lula <strong>{pct(ponto.projecao)}</strong> · Flávio <strong>{pct(1 - ponto.projecao)}</strong>
+          </span>
+        ) : (
+          <span>
+            Com {pct(ponto.pct)} apurado: <strong>{pct(ponto.projecao)}</strong> (provável entre {pct(ponto.p10)} e {pct(ponto.p90)})
+          </span>
+        )}
+        <span className="eixo-x">
+          Eixo de baixo: seções apuradas. O pontilhado {dupla ? '' : 'azul '}leva a projeção de agora até 100%. Toque no gráfico para ver cada momento.
         </span>
-        <span className="eixo-x">Eixo de baixo: seções apuradas. O pontilhado azul leva a projeção de agora até 100%. Toque no gráfico para ver cada momento.</span>
       </figcaption>
     </figure>
   );

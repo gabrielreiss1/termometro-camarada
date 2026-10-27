@@ -6,8 +6,9 @@ import { CANDIDATOS_OUTROS, lerBase, type Candidato } from './engine/tipos.ts';
 import { ELEICAO_1T, ELEICAO_2T } from './engine/tse.ts';
 import { ColetorTSE } from './engine/coletor.ts';
 import {
-  buscarJson, gravarSerieLocal, juntarSeries, lerSerieGravador, lerSerieLocal, pontoDe, type Ponto,
+  buscarJson, gravarSerieLocal, juntarSeries, lerSerieArquivo, lerSerieGravador, lerSerieLocal, pontoDe, type Ponto,
 } from './fonte.ts';
+import { NEUTRA } from './marca.ts';
 import { Grafico, GraficoProjecao } from './ui/Grafico.tsx';
 import {
   Abas, Apuracao, ComoFunciona, Comparecimento, Espera, Estados, Placar, Rodape, Topo, Transferencia, Veredito,
@@ -108,9 +109,10 @@ export function App() {
     };
   }, [prep, esperando]);
 
-  // Série gravada na nuvem, para quem abre a página no meio da apuração
+  // Série gravada na nuvem, para quem abre a página no meio da apuração (e a da noite, guardada no site)
   useEffect(() => {
     if (MODO !== 'ao-vivo' || esperando) return;
+    lerSerieArquivo().then((pts) => pts.length && setSerie((s) => juntarSeries(pts, s)));
     const buscar = () => lerSerieGravador().then((pts) => pts.length && setSerie((s) => juntarSeries(pts, s)));
     buscar();
     const t = setInterval(buscar, 15 * 60_000);
@@ -175,14 +177,20 @@ export function App() {
             <Veredito r={resultado} />
             <section className="card">
               <h2 className="card-title">Projeção ao longo da apuração</h2>
-              <p className="card-sub">Projeção final do Lula a cada atualização. A faixa clara é o resultado provável.</p>
-              <GraficoProjecao serie={serie} />
+              <p className="card-sub">
+                {NEUTRA
+                  ? 'Projeção final de cada candidato a cada atualização. A faixa clara é o resultado provável.'
+                  : 'Projeção final do Lula a cada atualização. A faixa clara é o resultado provável.'}
+              </p>
+              <GraficoProjecao serie={serie} dupla={NEUTRA} />
             </section>
-            <section className="card">
-              <h2 className="card-title">Como a apuração está andando</h2>
-              <p className="card-sub">Fatia do Lula entre os dois, conforme as seções são apuradas.</p>
-              <Grafico serie={serie} />
-            </section>
+            {!NEUTRA && (
+              <section className="card">
+                <h2 className="card-title">Como a apuração está andando</h2>
+                <p className="card-sub">Fatia do Lula entre os dois, conforme as seções são apuradas.</p>
+                <Grafico serie={serie} />
+              </section>
+            )}
             <Comparecimento r={resultado} />
           </>
         )}
