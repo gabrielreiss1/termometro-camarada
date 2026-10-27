@@ -522,11 +522,57 @@ function EstadosCamarada({ r, terceiro }: { r: Resultado; terceiro: Map<string, 
   );
 }
 
+/** Explicação do modelo por dentro, aberta pelo botão "?" do "Como funciona". */
+function ModeloPorDentro() {
+  return (
+    <div className="modelo" id="modelo-por-dentro">
+      <h3>O modelo, por dentro</h3>
+      <p>
+        É um <strong>modelo de diferença em relação ao previsto</strong> (em inglês, <em>swing model</em>), calculado
+        estado por estado.
+      </p>
+      <ol>
+        <li><strong>Previsto de cada cidade:</strong> o 1º turno dela, mais os votos dos outros candidatos divididos como diz a pesquisa ({CONFIG.fonteMatriz}). Tudo é ajustado por igual para o Brasil dar o empate da pesquisa {CONFIG.fonteEsperadoCurta}.</li>
+        <li><strong>Diferença do estado:</strong> nas cidades já apuradas, real menos previsto, numa média ponderada pelos votos (cidade grande pesa mais).</li>
+        <li><strong>Cautela:</strong> com poucos votos, a diferença do estado é puxada para a da região e a do Brasil. O peso do estado é votos ÷ (votos + 200 mil).</li>
+        <li><strong>O que falta:</strong> cada cidade não apurada recebe o previsto dela mais a diferença do seu estado. Os votos que ela vai dar são os eleitores que faltam × comparecimento × votos válidos.</li>
+        <li><strong>Projeção:</strong> votos já apurados mais votos projetados, sobre o total.</li>
+        <li><strong>Faixa e chance:</strong> a conta é refeita 400 vezes com pequenas variações (simulação de Monte Carlo). A faixa é onde caem os 80% de resultados do meio; a chance é a fração das contas em que o candidato passa de 50%.</li>
+      </ol>
+      <p className="formula">
+        projeção = (votos apurados + Σ (previsto + diferença do estado) × votos que faltam) ÷ total de votos
+      </p>
+      <h4>Exemplo</h4>
+      <p>
+        Num estado, a cidade A (300 mil votos) teve o candidato 2 pontos acima do previsto, e a cidade B (100 mil votos),
+        1 ponto acima. A diferença do estado é (2 × 300 + 1 × 100) ÷ 400 = <strong>+1,75</strong>. Uma cidade C, ainda
+        não apurada, com previsto de 55%, é projetada em <strong>56,75%</strong>.
+      </p>
+      <h4>Não é regressão nem média móvel</h4>
+      <p>
+        Uma regressão procuraria um padrão (por exemplo, a diferença ser maior onde o candidato é mais fraco) e daria a
+        cada cidade uma diferença própria. Aqui, todas as cidades que faltam no estado recebem a mesma diferença: é a
+        forma mais simples, mais estável com pouco dado e menos fina. Também não é média móvel: a cada atualização, a
+        conta é refeita do zero com tudo que já foi apurado.
+      </p>
+    </div>
+  );
+}
+
 export function ComoFunciona() {
+  const [aberto, setAberto] = useState(false);
   return (
     <>
       <section className="card regras">
-        <h2>Como funciona</h2>
+        <div className="regras-topo">
+          <h2>Como funciona</h2>
+          <button className="botao-ajuda" aria-expanded={aberto} aria-controls="modelo-por-dentro"
+            aria-label={aberto ? 'Fechar a explicação do modelo' : 'Explicar o modelo'} title="Como o modelo funciona"
+            onClick={() => setAberto((a) => !a)}>
+            {aberto ? '×' : '?'}
+          </button>
+        </div>
+        {aberto && <ModeloPorDentro />}
         {NEUTRA ? (<>
           <p>No começo da apuração, o placar do TSE mostra só as cidades que apuram primeiro, que não representam o país inteiro.</p>
           <p>O termômetro compara cada cidade apurada com o que as pesquisas e o 1º turno previam para aquela mesma cidade.</p>

@@ -266,3 +266,15 @@ a { color: var(--blue); font-weight: 600; }
 .pill-lula.active { background: var(--lula); }
 .pill-flavio.active { background: var(--flavio); }
 .rodape-sub { display: block; font-size: 11.5px; font-weight: 500; margin-top: 4px; }
+/* Botão "?" do Como funciona e a explicação do modelo */
+.regras-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+.regras-topo h2 { margin-bottom: 0; }
+.botao-ajuda { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--blue); background: #fff; color: var(--blue); font-family: inherit; font-size: 20px; font-weight: 800; line-height: 1; cursor: pointer; }
+.botao-ajuda[aria-expanded='true'] { background: var(--blue); color: #fff; }
+.modelo { background: var(--blue-claro); border-radius: 10px; padding: 14px; margin: 2px 0 14px; }
+.modelo h3 { margin-top: 0 !important; }
+.modelo h4 { font-size: 13.5px; font-weight: 800; margin: 12px 0 4px; }
+.modelo ol { padding-left: 20px; margin: 6px 0 10px; }
+.modelo li { font-size: 13px; color: #333; margin-bottom: 6px; line-height: 1.5; }
+.modelo p { font-size: 13px; }
+.formula { background: #fff; border-radius: 8px; padding: 10px 12px; font-size: 12.5px; font-weight: 600; color: var(--ink) !important; line-height: 1.5; }
