@@ -304,7 +304,14 @@ function AjudaNeutra({ efeito, semDados }: { efeito: number; semDados: boolean }
 }
 
 export function Rodape() {
-  if (NEUTRA) return <footer className="rodape">Projeção independente com dados públicos do TSE.</footer>;
+  if (NEUTRA) {
+    return (
+      <footer className="rodape">
+        Desenvolvido por Gabriel Reis
+        <span className="rodape-sub">Projeção independente com dados públicos do TSE.</span>
+      </footer>
+    );
+  }
   return (
     <footer className="rodape">
       Desenvolvido por camaradas <span className="simbolo">☭</span>
